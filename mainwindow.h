@@ -5,6 +5,7 @@
 #include <QPushButton>
 #include <QLayout>
 #include <QTextEdit>
+#include "tcpclient.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -21,9 +22,10 @@ public:
 private slots:
     void on_joinButton_clicked();
 
-    void on_createButton_clicked();
+    void on_sendButton_clicked();
 
 private:
     Ui::MainWindow *ui;
+    tcpClient *client;
 };
 #endif // MAINWINDOW_H

@@ -14,56 +14,20 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="createButton">
-    <property name="geometry">
-     <rect>
-      <x>80</x>
-      <y>130</y>
-      <width>89</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>创建</string>
-    </property>
-   </widget>
    <widget class="QPushButton" name="joinButton">
-    <property name="geometry">
-     <rect>
-      <x>330</x>
-      <y>130</y>
-      <width>89</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>加入</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="ipAdressLabel">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>50</y>
-      <width>161</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>你的ip地址:</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="ipInput">
     <property name="geometry">
      <rect>
       <x>300</x>
       <y>70</y>
-      <width>171</width>
+      <width>89</width>
       <height>25</height>
      </rect>
     </property>
+    <property name="text">
+     <string>连接</string>
+    </property>
    </widget>
-   <widget class="QLineEdit" name="myIpAdress">
+   <widget class="QLineEdit" name="userNameEdit">
     <property name="geometry">
      <rect>
       <x>60</x>
@@ -71,6 +35,55 @@
       <width>171</width>
       <height>25</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="sendMessageEdit">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>170</y>
+      <width>171</width>
+      <height>25</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="sendButton">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>170</y>
+      <width>89</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>发送</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>26</y>
+      <width>81</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>输入用户名</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>136</y>
+      <width>141</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>输入你要发送的消息</string>
     </property>
    </widget>
   </widget>

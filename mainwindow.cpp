@@ -18,16 +18,19 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_joinButton_clicked()
 {
-    QString ipAdress=ui->ipInput->text();
-    tcpClient *client=new tcpClient(this);
-    client->initClient(ipAdress,9999);
-    client->sendTestMessage();
+    QString ipAdress="49.235.207.33";
+    client=new tcpClient(this);
+    client->initClient(ipAdress,16555);
+    QString userName=ui->userNameEdit->text();
+    userName="n"+userName;
+    qDebug()<<"在线玩家列表:";
+    client->send(userName);
+    //client->sendTestMessage();
 }
 
-void MainWindow::on_createButton_clicked()
+
+void MainWindow::on_sendButton_clicked()
 {
-    tcpServer *server=new tcpServer(this);
-    server->initServer(9999);
-    ui->myIpAdress->setText(server->returnOutIP());
-    ui->myIpAdress->setReadOnly(true);
+    QString msg=ui->sendMessageEdit->text();
+    client->send(msg);
 }

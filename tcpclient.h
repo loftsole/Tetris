@@ -11,6 +11,7 @@ public:
     tcpClient(QObject *parent=nullptr);
     void initClient(QString IpAdress,quint16 port);
     void sendTestMessage();
+    void send(QString msg);
 public slots:
     void readServerMessage();
 private:

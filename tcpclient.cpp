@@ -14,10 +14,14 @@ void tcpClient::initClient(QString ipAdress,quint16 port)
 void tcpClient::readServerMessage()
 {
     QString msg=QString(client->readAll());
-    qDebug()<<"来自服务器的消息:"<<msg;
+    qDebug()<<msg;
 }
 void tcpClient::sendTestMessage()
 {
     QByteArray msg="hello server";
     client->write(msg);
+}
+void tcpClient::send(QString msg)
+{
+    client->write(msg.toUtf8());
 }
