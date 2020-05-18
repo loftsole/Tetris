@@ -1,3 +1,4 @@
+//界面 目前为测试用
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
@@ -5,7 +6,8 @@
 #include <QPushButton>
 #include <QLayout>
 #include <QTextEdit>
-#include "tcpclient.h"
+#include "tetris.h"
+#include "tcpserver.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -26,6 +28,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    tcpClient *client;
+    Tetris *game;
+    tcpServer *server;
 };
 #endif // MAINWINDOW_H

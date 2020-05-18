@@ -1,13 +1,14 @@
+//界面 目前为测试用
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "tcpclient.h"
-#include "tcpserver.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    game=new Tetris(this);
 }
 
 MainWindow::~MainWindow()
@@ -18,19 +19,13 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_joinButton_clicked()
 {
-    QString ipAdress="49.235.207.33";
-    client=new tcpClient(this);
-    client->initClient(ipAdress,16555);
-    QString userName=ui->userNameEdit->text();
-    userName="n"+userName;
-    qDebug()<<"在线玩家列表:";
-    client->send(userName);
-    //client->sendTestMessage();
+    QString user_name=ui->userNameEdit->text();
+    game->input_user_name(user_name);
 }
 
 
 void MainWindow::on_sendButton_clicked()
 {
     QString msg=ui->sendMessageEdit->text();
-    client->send(msg);
+    game->send_test_msg(msg);
 }
