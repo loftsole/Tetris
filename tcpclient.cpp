@@ -23,5 +23,6 @@ void tcpClient::sendTestMessage()
 }
 void tcpClient::send(QString msg)
 {
+    msg="/"+msg;
     client->write(msg.toUtf8());
 }
