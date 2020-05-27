@@ -32,6 +32,8 @@ public:
 
     /*测试用*/
     void send_test_msg(QString msg);
+public slots:
+    void print_user();
 signals:
     /*需要显示对应内容时发出信号*/
     void update_my_ui();//我方界面变化

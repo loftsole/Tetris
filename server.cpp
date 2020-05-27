@@ -26,6 +26,7 @@ pthread_mutex_t mutx;//互斥量
 
 struct user_sock_default {//为客户端套接字设定默认值
   int sock = -1;
+  bool game=false;
 };
 map<string,user_sock_default> online_user;//记录用户名和对应套接字
 
@@ -77,6 +78,7 @@ void * handle_clnt(void * arg)
     int str_len = 0, i;
     char msg[BUF_SIZE];
     string user_name,op_user_name;
+    bool op_game_status;
     bool get_user_name=false;//用户名是否已输入
     bool game_start =false;//游戏是否开始
 
@@ -123,10 +125,11 @@ void * handle_clnt(void * arg)
                 op_user_name=data.substr(1);//记录对方用户名
                 pthread_mutex_lock(&mutx);
                 op_clnt_sock=online_user[op_user_name].sock;
+                op_game_status=online_user[op_user_name].game;
                 pthread_mutex_unlock(&mutx);
-                if (op_clnt_sock==-1)
+                if (op_clnt_sock==-1 || op_game_status==true)
                   {
-                    send_msg(clnt_sock,"e1");//返回对方不在线信息
+                    send_msg(clnt_sock,"e1");//返回对方不在线或已经开始游戏
                   }
                 else
                   {
@@ -139,8 +142,9 @@ void * handle_clnt(void * arg)
                 op_user_name=data.substr(1);//记录对方用户名
                 pthread_mutex_lock(&mutx);
                 op_clnt_sock=online_user[op_user_name].sock;
+                op_game_status=online_user[op_user_name].game;
                 pthread_mutex_unlock(&mutx);
-                if (op_clnt_sock==-1)
+                if (op_clnt_sock==-1 || op_game_status==true)
                   {
                     send_msg(clnt_sock,"e1");//返回对方不在线信息
                   }
@@ -149,15 +153,37 @@ void * handle_clnt(void * arg)
                     //连接成功 游戏开始
                     game_start=true;
                     send_msg(op_clnt_sock,"go");
+                    send_msg(clnt_sock,"go");
+                    pthread_mutex_lock(&mutx);
+                    online_user[op_user_name].game=true;
+                    online_user[user_name].game=true;
+                    pthread_mutex_unlock(&mutx);
                   }
+              }
+            else if (data[0]=='!' && game_start==false)//拒绝连接请求
+              {
+                op_user_name=data.substr(1);
+                pthread_mutex_lock(&mutx);
+                op_clnt_sock=online_user[op_user_name].sock;
+                pthread_mutex_unlock(&mutx);
+                send_msg(op_clnt_sock,"decline");
               }
             else if (data[0]=='g' && game_start==false)//发送方确认游戏开始
               {
                 game_start=true;
               }
-            else if (game_start=true)//游戏已开始
+            else if (game_start==true)//游戏已开始
               {
                 send_msg(op_clnt_sock,data);//进行数据转发
+                if (data[0]=='o')//游戏结束
+                  {
+                    pthread_mutex_lock(&mutx);
+                    online_user[op_user_name].game=false;
+                    online_user[user_name].game=false;
+                    pthread_mutex_unlock(&mutx);
+                    game_start=false;
+                    cout<<"game over"<<endl;
+                  }
               }
           }
       }
@@ -166,6 +192,8 @@ void * handle_clnt(void * arg)
       send_msg(op_clnt_sock,"e2");
     //从数组中移除当前客服端
     pthread_mutex_lock(&mutx);
+    online_user[user_name].game=false;
+    online_user[op_user_name].game=false;
     online_user[user_name].sock=-1;//user下线
     for (i = 0; i < clnt_cnt; i++)
     {
@@ -211,7 +239,7 @@ void send_user_list(int clnt_sock)
   //online_user[user_name]=true;
   for (map<string,user_sock_default>::iterator it=online_user.begin();it!=online_user.end();it++)//遍历玩家列表
     {
-      if (it->second.sock!=-1)
+      if (it->second.sock!=-1 && it->second.game==false)
         {
           user_list.push(it->first);
         }
@@ -219,7 +247,8 @@ void send_user_list(int clnt_sock)
   pthread_mutex_unlock(&mutx);
   while (!user_list.empty())//发送
     {
-      send_msg(clnt_sock,user_list.front());
+      string msg="-"+user_list.front();
+      send_msg(clnt_sock,msg);
       user_list.pop();
     }
   send_msg(clnt_sock,"finish");
