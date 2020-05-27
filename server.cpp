@@ -1,5 +1,3 @@
-//临界区是：clnt_cnt和clnt_socks访问处
-
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -14,18 +12,22 @@
 #include <queue>
 using namespace std;
 
-#define BUF_SIZE 128
-#define MAX_CLNT 256
+#define BUF_SIZE 512
+#define MAX_CLNT 1024
 
 void * handle_clnt(void * arg);
-void send_msg(int clnt_sock,string str_msg);
-void send_msg_all(char * msg, int len);
-void send_user_list(int clnt_sock);
+void send_msg(int clnt_sock,string str_msg);//向指定客户端发送消息
+void send_msg_all(char * msg, int len);//广播
+void send_user_list(int clnt_sock);//发送在线玩家列表
 void error_handling(char * msg);
-int clnt_cnt = 0;
-int clnt_socks[MAX_CLNT];
-pthread_mutex_t mutx;
-map<string,bool> online_user;//记录用户名是否在线
+int clnt_cnt = 0;//客户端数量
+int clnt_socks[MAX_CLNT];//客户端套接字列表
+pthread_mutex_t mutx;//互斥量
+
+struct user_sock_default {//为客户端套接字设定默认值
+  int sock = -1;
+};
+map<string,user_sock_default> online_user;//记录用户名和对应套接字
 
 int main(int argc, char *argv[])
 {
@@ -37,12 +39,12 @@ int main(int argc, char *argv[])
     //创建互斥量
     pthread_mutex_init(&mutx, NULL);
     serv_sock = socket(PF_INET, SOCK_STREAM, 0);
-
+    //设定套接字
     memset(&serv_adr, 0, sizeof(serv_adr));
     serv_adr.sin_family = AF_INET;
     serv_adr.sin_addr.s_addr = htonl(INADDR_ANY);
     serv_adr.sin_port = htons(16555);
-
+    //绑定套接字
     bind(serv_sock, (struct sockaddr *) &serv_adr, sizeof(serv_adr));
     listen(serv_sock, 5);
 
@@ -71,9 +73,10 @@ int main(int argc, char *argv[])
 void * handle_clnt(void * arg)
 {
     int clnt_sock = *((int *)arg);
+    int op_clnt_sock=-1;
     int str_len = 0, i;
     char msg[BUF_SIZE];
-    string user_name;
+    string user_name,op_user_name;
     bool get_user_name=false;//用户名是否已输入
     bool game_start =false;//游戏是否开始
 
@@ -86,24 +89,28 @@ void * handle_clnt(void * arg)
         while (ori_data[0]=='/')
           {
             string data;
-            ori_data=ori_data.substr(1);
-            int dis_pos=ori_data.find('/');
-            if (dis_pos!=string::npos)
+            ori_data=ori_data.substr(1);//去除分隔符
+            int dis_pos=ori_data.find('/');//下一个分隔符位置
+            if (dis_pos!=string::npos)//有下一个分隔符
               {
                 data=ori_data.substr(0,dis_pos);
                 ori_data=ori_data.substr(dis_pos);
               }
-            else
+            else//没有下一个分隔符
               data=ori_data;
-            //cout<<"ori:"<<ori_data<<endl;
-            //cout<<data<<endl;
+
+            //打印消息
+            cout<<user_name<<":"<<data<<endl;
+
+            //分隔符处理完成
             if (data[0]=='n' && get_user_name==false)//客户端发送用户名
               {
                 user_name=data.substr(1);//记录用户名
-                cout<<user_name<<endl;
+                cout<<user_name<<" 已上线"<<endl;
                 get_user_name=true;
+
                 pthread_mutex_lock(&mutx);
-                online_user[user_name]=true;//使其上线
+                online_user[user_name].sock=clnt_sock;//使其上线
                 pthread_mutex_unlock(&mutx);
               }
             else if (data[0]=='r' && game_start==false)//客户端请求刷新用户列表
@@ -111,19 +118,55 @@ void * handle_clnt(void * arg)
                 send_user_list(clnt_sock);
                 //cout<<"refresh"<<endl;
               }
-            else//已发送用户名
+            else if (data[0]=='>' && game_start==false)//发送连接请求
               {
-                string user_msg=user_name+":"+data;//群发消息测试
-                for (int i=0;i<user_msg.length();i++)
-                  msg[i]=user_msg[i];
-                msg[user_msg.length()]='\0';
-                send_msg_all(msg,user_msg.length());
+                op_user_name=data.substr(1);//记录对方用户名
+                pthread_mutex_lock(&mutx);
+                op_clnt_sock=online_user[op_user_name].sock;
+                pthread_mutex_unlock(&mutx);
+                if (op_clnt_sock==-1)
+                  {
+                    send_msg(clnt_sock,"e1");//返回对方不在线信息
+                  }
+                else
+                  {
+                    string msg="<"+user_name;
+                    send_msg(op_clnt_sock,msg);//向对方客户端发送询问信息
+                  }
+              }
+            else if (data[0]=='<' && game_start==false)//接受连接请求
+              {
+                op_user_name=data.substr(1);//记录对方用户名
+                pthread_mutex_lock(&mutx);
+                op_clnt_sock=online_user[op_user_name].sock;
+                pthread_mutex_unlock(&mutx);
+                if (op_clnt_sock==-1)
+                  {
+                    send_msg(clnt_sock,"e1");//返回对方不在线信息
+                  }
+                else
+                  {
+                    //连接成功 游戏开始
+                    game_start=true;
+                    send_msg(op_clnt_sock,"go");
+                  }
+              }
+            else if (data[0]=='g' && game_start==false)//发送方确认游戏开始
+              {
+                game_start=true;
+              }
+            else if (game_start=true)//游戏已开始
+              {
+                send_msg(op_clnt_sock,data);//进行数据转发
               }
           }
       }
+    //通知对方已下线
+    if (op_clnt_sock!=-1)
+      send_msg(op_clnt_sock,"e2");
     //从数组中移除当前客服端
     pthread_mutex_lock(&mutx);
-    online_user[user_name]=false;//user下线
+    online_user[user_name].sock=-1;//user下线
     for (i = 0; i < clnt_cnt; i++)
     {
         if (clnt_sock == clnt_socks[i])
@@ -166,9 +209,9 @@ void send_user_list(int clnt_sock)
   while (!user_list.empty()) user_list.pop();
   pthread_mutex_lock(&mutx);
   //online_user[user_name]=true;
-  for (map<string,bool>::iterator it=online_user.begin();it!=online_user.end();it++)//遍历玩家列表
+  for (map<string,user_sock_default>::iterator it=online_user.begin();it!=online_user.end();it++)//遍历玩家列表
     {
-      if (it->second)
+      if (it->second.sock!=-1)
         {
           user_list.push(it->first);
         }
