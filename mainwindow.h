@@ -6,8 +6,10 @@
 #include <QPushButton>
 #include <QLayout>
 #include <QTextEdit>
+#include <QPainter>
+#include <QTimer>
 #include "tetris.h"
-#include "tcpserver.h"
+#include "tcpclient.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -21,14 +23,26 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-private slots:
-    void on_joinButton_clicked();
+    void gameStart();
 
-    void on_sendButton_clicked();
+protected:
+    void paintEvent(QPaintEvent*);
+    void timerEvent(QTimerEvent *event);
+
+private slots:
+
 
 private:
     Ui::MainWindow *ui;
-    Tetris *game;
-    tcpServer *server;
+    Tetris game;
+    tcpClient *client;
+
+    int paint_timer; //渲染刷新计时器
+    int game_timer;
+
+    const int MAX_ROW=20;
+    const int MAX_COL=10;
+    const int refresh_time=100;
+    const int down_time=1000;
 };
 #endif // MAINWINDOW_H

@@ -19,13 +19,11 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     tcpclient.cpp \
-    tcpserver.cpp \
     tetris.cpp
 
 HEADERS += \
     mainwindow.h \
     tcpclient.h \
-    tcpserver.h \
     tetris.h
 
 FORMS += \

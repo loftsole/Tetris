@@ -1,57 +1,68 @@
-//游戏主体
 #ifndef TETRIS_H
 #define TETRIS_H
 
-#include <QObject>
-#include "tcpclient.h"
+//为了获得随机数
+#include <cstdlib>
+#include <ctime>
 
-class Tetris:public QObject
+#define MAXX 10     //显示窗口的横向格数
+#define MAXY 20     //显示窗口的竖向格数
+#define NEXTMAXX 6  //“下一个”显示窗口的横向格数
+#define NEXTMAXY 6  //“下一个”显示窗口的竖向格数
+#define WIDTH 30    //单格的宽度
+#define HEIGHT 30   //单格的高度
+#define INTERVAL 4  //单格之间的间隔
+#define COUNT 4     //每个方块的格数
+
+//Block结构体：一个方块
+struct Block
 {
-    Q_OBJECT
+    int x[COUNT];   //方块单格的x坐标
+    int y[COUNT];   //方块单格的y坐标
+    int centerX;    //方块的中心x坐标
+    int centerY;    //方块的中心y坐标
+    int ID;         //方块的ID
+};
+
+
+class Tetris
+{
 public:
-    Tetris(QObject *parent=nullptr);
+    Tetris();
+    void gameStart();
+    void createBlock();             //创建当前方块
+    Block getNextBlock();           //获得下一个方块
+    Block getBlock();               //获得当前方块
+    int getScore();                 //获得分数
+    int getBox(int x, int y);       //获得相应坐标的状态
+    bool rotate();                  //旋转
+    bool moveToLeft();              //向左移动
+    bool moveToRight();             //向右移动
+    bool moveToBottom();            //向下移动
+    bool isEnd();                   //判断是否结束
+    void killLines();               //消去整行
+    void clear();                   //重新初始化
 
-    void init();//初始化
+    static int getWidth();          //获得窗口的宽度
+    static int getHeight();         //获得窗口的高度
+    static int getNextWidth();      //获得“下一个”窗口的宽度
+    static int getNextHeight();     //获得“下一个”窗口的高度
 
-    /*UI交互*/
-    //游戏部分
-    //输入
-    void move_left();//左移
-    void move_right();//右移
-    void move_rotate();//旋转
-    void move_down();//下落
-    void use_item();//使用道具
-    //输出
-    int* get_my_ui();//我方游戏界面
-    int* get_opponent_ui();//对方游戏界面
-    int get_next_block();//下一个方块
-    int get_item();//道具信息
 
-    //联机部分
-    void input_user_name(QString name);//输入用户名
 
-    /*测试用*/
-    void send_test_msg(QString msg);
-public slots:
-    void print_user();
-signals:
-    /*需要显示对应内容时发出信号*/
-    void update_my_ui();//我方界面变化
-    void update_opponent_ui();//对方界面变化
-    void update_next_block();//下一个方块变化
-    void opponent_use_item();//对方使用道具
-    void game_over();//游戏结束
-    /*在ui中设置对应的槽*/
 private:
-    void test_client();
+    void createNextBlock();         //创建下一个方块
+    bool move(int dx, int dy);      //是否可以移动
+    void blockToBox();              //将block中的数据转移到box中
+    bool isRotatable();             //是否可以旋转
+    int getFirstFullLine();         //获得第一个整行
 
-    tcpClient *client;
-    QString user_name;
+private:
+    int score;          //分数
+    Block block;        //当前方块
+    Block nextBlock;    //下一个方块
+    int box[MAXX][MAXY];//方格的坐标系 1表示右方格，0表示没有方格
 
-    int game_matrix[25][15];//模拟矩阵
-    int next_block_number;//下一个方块的编号
-    int item[5];//道具信息
-    QString opponent_game_matrix;//对方数据
 
 };
 
