@@ -8,6 +8,7 @@
 #include <QTextEdit>
 #include <QPainter>
 #include <QTimer>
+#include <QKeyEvent>
 #include "tetris.h"
 #include "tcpclient.h"
 
@@ -28,6 +29,7 @@ public:
 protected:
     void paintEvent(QPaintEvent*);
     void timerEvent(QTimerEvent *event);
+    void keyPressEvent(QKeyEvent *event);
 
 private slots:
 

@@ -36,7 +36,7 @@ void MainWindow::paintEvent(QPaintEvent *)
             if (game.getBox(i,j)==1)
             {
                 painter.setBrush(QBrush(Qt::blue,Qt::SolidPattern));
-                painter.drawRect(i*30+200,j*30+200,30,30);
+                painter.drawRect(j*30+200,i*30+200,30,30);
                 //qDebug()<<i<<j;
             }
         }
@@ -51,6 +51,26 @@ void MainWindow::timerEvent(QTimerEvent *event)
     {
         game.moveToBottom();
     }
+}
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    switch(event->key())
+        {
+        case Qt::Key_Up:
+            game.rotate();
+            break;
+        case Qt::Key_Down:
+            game.moveToBottom();
+            break;
+        case Qt::Key_Left:
+            game.moveToLeft();
+            break;
+        case Qt::Key_Right:
+            game.moveToRight();
+            break;
+        default:
+            break;
+        }
 }
 
 void MainWindow::gameStart()
