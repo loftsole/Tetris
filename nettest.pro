@@ -16,13 +16,19 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    askdialog.cpp \
+    joindialog.cpp \
     main.cpp \
     mainwindow.cpp \
+    namedialog.cpp \
     tcpclient.cpp \
     tetris.cpp
 
 HEADERS += \
+    askdialog.h \
+    joindialog.h \
     mainwindow.h \
+    namedialog.h \
     tcpclient.h \
     tetris.h
 

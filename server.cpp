@@ -108,12 +108,23 @@ void * handle_clnt(void * arg)
             if (data[0]=='n' && get_user_name==false)//客户端发送用户名
               {
                 user_name=data.substr(1);//记录用户名
-                cout<<user_name<<" 已上线"<<endl;
-                get_user_name=true;
 
+                int test_sock;
                 pthread_mutex_lock(&mutx);
-                online_user[user_name].sock=clnt_sock;//使其上线
+                test_sock=online_user[user_name].sock;
                 pthread_mutex_unlock(&mutx);
+                if (test_sock!=-1)
+                  send_msg(clnt_sock,"nameused");
+                else
+                  {
+                    cout<<user_name<<" 已上线"<<endl;
+                    get_user_name=true;
+
+                    pthread_mutex_lock(&mutx);
+                    online_user[user_name].sock=clnt_sock;//使其上线
+                    pthread_mutex_unlock(&mutx);
+                    send_msg(clnt_sock,"nameok");
+                  }
               }
             else if (data[0]=='r' && game_start==false)//客户端请求刷新用户列表
               {

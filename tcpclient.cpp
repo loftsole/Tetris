@@ -13,6 +13,7 @@ void tcpClient::initClient(QString ipAdress,quint16 port)
     client->connectToHost(ipAdress,port);
     connect(client,SIGNAL(readyRead()),
             this,SLOT(readServerMessage()));
+    is_game_start=false;
 }
 void tcpClient::readServerMessage()//提取消息
 {
@@ -42,18 +43,27 @@ void tcpClient::msgProcessing(QString data)//处理消息
     }
     else if (data=="finish")
     {
-        emit userListFinish();
+        emit userListFinish(online_user);
+    }
+    else if (data=="nameok")
+    {
+        emit nameAccept();
+    }
+    else if (data=="nameused")
+    {
+        emit nameUsed();
     }
     else if (data.startsWith("<"))//接收到连接请求
     {
-        connect_request.push(data.mid(1));
-        qDebug()<< "接收到连接请求:"<<connect_request.front();
-        emit newConnectRequest();
+        emit newConnectRequest(data.mid(1));
     }
     else if (data=="decline")//对方拒绝
     {
         //qDebug()<<"对方拒绝";
-        QMessageBox::information(nullptr, " ", "对方拒绝了你的请求");
+        QMessageBox *msgBox=new QMessageBox(QMessageBox::Warning, "reject", "对方拒绝了你的请求", QMessageBox::NoButton);
+        msgBox->setModal(false);
+        msgBox->show();
+        //QMessageBox::information(nullptr, " ", "对方拒绝了你的请求");
     }
     else if (data.startsWith("go"))//确认游戏开始
     {
@@ -66,6 +76,10 @@ void tcpClient::msgProcessing(QString data)//处理消息
         op_msg=data;
         emit newOpponentMessage();
     }
+}
+void tcpClient::inputUserName(QString name)
+{
+    sendUserName(name);
 }
 
 vector<QString> tcpClient::getUserName()
