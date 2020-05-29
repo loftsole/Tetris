@@ -36,7 +36,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    Tetris game;
+    Tetris *game;
     tcpClient *client;
 
     int paint_timer; //渲染刷新计时器

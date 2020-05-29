@@ -8,7 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     setFixedSize(1600,900);
-    //game=new Tetris(this);
+    game=new Tetris();
 
     //client=new tcpClient(parent);
     //QString ipAdress="49.235.207.33";//服务器地址
@@ -20,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    delete game;
     delete ui;
 }
 
@@ -30,16 +31,18 @@ void MainWindow::paintEvent(QPaintEvent *)
     painter.setBrush(QBrush(Qt::white,Qt::SolidPattern));
     painter.drawRect(200,200,MAX_COL*30,MAX_ROW*30);
 
-    for (int i=1;i<=MAX_ROW;i++)
-        for (int j=1;j<=MAX_COL;j++)
+    for (int i=0;i<MAX_COL;i++)
+        for (int j=0;j<MAX_ROW;j++)
         {
-            if (game.getBox(i,j)==1)
+            if (game->getBox(i,j)==1)
             {
                 painter.setBrush(QBrush(Qt::blue,Qt::SolidPattern));
-                painter.drawRect(j*30+200,i*30+200,30,30);
-                //qDebug()<<i<<j;
+                painter.drawRect(i*30+200,j*30+200,30,30);
+                qDebug()<<i<<j;
             }
         }
+
+
 }
 void MainWindow::timerEvent(QTimerEvent *event)
 {
@@ -49,7 +52,7 @@ void MainWindow::timerEvent(QTimerEvent *event)
     }
     if (event->timerId()==game_timer)
     {
-        game.moveToBottom();
+        game->moveToBottom();
     }
 }
 void MainWindow::keyPressEvent(QKeyEvent *event)
@@ -57,16 +60,16 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     switch(event->key())
         {
         case Qt::Key_Up:
-            game.rotate();
+            game->rotate();
             break;
         case Qt::Key_Down:
-            game.moveToBottom();
+            game->moveToBottom();
             break;
         case Qt::Key_Left:
-            game.moveToLeft();
+            game->moveToLeft();
             break;
         case Qt::Key_Right:
-            game.moveToRight();
+            game->moveToRight();
             break;
         default:
             break;
@@ -77,5 +80,5 @@ void MainWindow::gameStart()
 {
      paint_timer=startTimer(refresh_time);
      game_timer=startTimer(down_time);
-     game.gameStart();
+     game->gameStart();
 }

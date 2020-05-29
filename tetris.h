@@ -4,6 +4,8 @@
 //为了获得随机数
 #include <cstdlib>
 #include <ctime>
+#include <iostream>
+#include <QObject>
 
 #define MAXX 10     //显示窗口的横向格数
 #define MAXY 20     //显示窗口的竖向格数
@@ -27,6 +29,7 @@ struct Block
 
 class Tetris
 {
+    //Q_OBJECT
 public:
     Tetris();
     void gameStart();
