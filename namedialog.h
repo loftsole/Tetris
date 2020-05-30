@@ -15,6 +15,7 @@ class nameDialog:public QDialog
     Q_OBJECT
 public:
     nameDialog(QObject *parent=nullptr);
+    QString getName();
 
 signals:
     void sendName(QString user_name);

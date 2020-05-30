@@ -51,7 +51,7 @@ void joinDialog::refresh(vector<QString> user_list)//收到新的用户列表,�
     layout->addWidget(refresh_button);
     setLayout(layout);
 
-    update();
+    //update();
 }
 void joinDialog::ask_for_request(QString user_name)//收到对战请求,询问用户
 {

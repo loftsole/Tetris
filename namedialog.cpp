@@ -41,3 +41,7 @@ bool nameDialog::checkName()
     else
         return true;
 }
+QString nameDialog::getName()
+{
+    return name;
+}

@@ -126,7 +126,7 @@ void * handle_clnt(void * arg)
                     send_msg(clnt_sock,"nameok");
                   }
               }
-            else if (data[0]=='r' && game_start==false)//客户端请求刷新用户列表
+            else if (data[0]=='r' /*&& game_start==false*/)//客户端请求刷新用户列表
               {
                 send_user_list(clnt_sock);
                 //cout<<"refresh"<<endl;
@@ -157,14 +157,16 @@ void * handle_clnt(void * arg)
                 pthread_mutex_unlock(&mutx);
                 if (op_clnt_sock==-1 || op_game_status==true)
                   {
-                    send_msg(clnt_sock,"e1");//返回对方不在线信息
+                    send_msg(clnt_sock,"e1");//返回对方不在线或已在游戏中
                   }
                 else
                   {
                     //连接成功 游戏开始
                     game_start=true;
-                    send_msg(op_clnt_sock,"go");
-                    send_msg(clnt_sock,"go");
+                    string msg="g"+user_name;
+                    send_msg(op_clnt_sock,msg);
+                    msg="g"+op_user_name;
+                    send_msg(clnt_sock,msg);
                     pthread_mutex_lock(&mutx);
                     online_user[op_user_name].game=true;
                     online_user[user_name].game=true;
@@ -195,6 +197,8 @@ void * handle_clnt(void * arg)
                     game_start=false;
                     cout<<"game over"<<endl;
                   }
+                if (data[0]=='e')
+                  game_start=false;
               }
           }
       }

@@ -15,16 +15,16 @@ class tcpClient:public QObject
     Q_OBJECT
 public:
     tcpClient(QObject *parent=nullptr);
-    void initClient(QString IpAdress,quint16 port);
-    void sendTestMessage();
+    void connectTo(QString IpAdress,quint16 port);
+    void init();
     void send(QString msg);
 
     void sendUserName(QString user_name);//发送自己的用户名
 
     vector<QString> getUserName();//返回在线玩家列表
-    QString getConnectRequest();//返回队列中下一个连接请求
-    QString getOpponentMessage();//返回对方发送的信息
     bool isNameOk();//用户名是否接受
+    QString getOpUserName();//返回对方用户名
+    void gameOver();
 public slots:
     void readServerMessage();
     void inputUserName(QString name);
@@ -38,17 +38,15 @@ signals:
     void userListFinish(vector<QString>);//可更新玩家列表
     void newConnectRequest(QString user_name);//有新的连接请求
     void gameStart();//游戏开始
-    void newOpponentMessage();//接收到对方游戏信息
+    void newOpponentMessage(QString msg);//接收到对方游戏信息
 private:
     void msgProcessing(QString data);
-    void refuseAllRequest();
 
     QTcpSocket *client;
     vector<QString> online_user;
-    queue<QString> connect_request;
     QString op_user_name;
-    QString op_msg;
     bool is_game_start;
+    bool has_user_name;
 };
 
 #endif // TCPCLIENT_H
