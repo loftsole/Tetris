@@ -41,6 +41,9 @@ private slots:
     void print();
     void nameAccepted();//用户名被接受
     void receiveOpMsg(QString op_msg);//接收对方发来的消息
+    void useItem(int num);
+    void opUseItem(int num);//打印使用道具信息
+    void relieveItem(int num);
     void sendChatMessage();
     void changeTimer(int count);
     void gameStart();
@@ -49,6 +52,7 @@ private slots:
 private:
     void init();
     void showLabel();
+    void showInformation();
     void readUserName();//读取用户名窗口
     void createJoinDialog();//加入对战窗口
     void setColour(QPainter &painter,int colour);
@@ -61,6 +65,8 @@ private:
     QLineEdit *edit;
     QTextBrowser *browser;
     QLabel *name_label,*op_name_label;
+    QLabel *item_label[3];
+    QPushButton *button[5];
 
     int paint_timer; //渲染刷新计时器
     int game_timer;
@@ -88,6 +94,8 @@ private:
     const int EDITY=680;
     const int EDITW=BROWSERW;
     const int EDITH=40;
+    const int ITEM_LABELX=300;            //道具栏
+    const int ITEM_LABELY=60;
 
     int down_time=500;
 };

@@ -77,7 +77,7 @@ void tcpClient::msgProcessing(QString data)//处理消息
     }
     else if (data.startsWith("g") && is_game_start==false)//确认游戏开始
     {
-        send("go");
+        send(data);
         op_user_name=data.mid(1);//保存对方用户名
         is_game_start=true;
         emit gameStart();
@@ -133,7 +133,6 @@ void tcpClient::refuseConnect(QString user_name)//拒绝user_name的连接请求
 }
 void tcpClient::gameOver()
 {
-    send("over");
     is_game_start=false;
 }
 void tcpClient::send(QString msg)

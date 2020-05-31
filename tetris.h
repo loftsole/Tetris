@@ -19,6 +19,7 @@ public:
     void moveLeft();
     void moveRight();
     void moveDown();
+    void useItem(int item_pos);
 
     int getBox(int i,int j);
     int getNextBlock();
@@ -26,11 +27,17 @@ public:
 
     int next_block[4][4];
     int op_next_block[4][4];
+    int item[3];
+    bool is_ink;
+    bool is_reverse;
 signals:
     void gameOver();
     void print();
     void send(QString msg);
     void changeTimer(int block_count);
+    void opUseItem(int item_num);
+    void useItemSuccess(int item_num);
+    void relieveItem(int item_num);
 private:
     void createBlock(int block[4][4]);
     void rotateBlock(int block[4][4]);
@@ -48,6 +55,9 @@ private:
     int cur_block[4][4];
     int curx,cury;
     int block_count;
+    int ink_count;
+    int reverse_count;
+    int item_count;
     bool game_over;
 
     //定义图案代码和边界
@@ -106,6 +116,14 @@ private:
         {0,0,7,0},
         {0,0,7,0},
         {0,0,7,0}
+    };
+    //道具
+    int item8[4][4]=
+    {
+        {8,8,8,0},
+        {8,8,8,0},
+        {8,8,8,0},
+        {0,0,0,0}
     };
 };
 

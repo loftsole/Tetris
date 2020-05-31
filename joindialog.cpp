@@ -58,9 +58,8 @@ void joinDialog::ask_for_request(QString user_name)//收到对战请求,询问�
     askDialog *ask_dialog=new askDialog(user_name);
 
     connect(ask_dialog,&askDialog::accept,
-            [=](QString user_name){emit acceptRequest(user_name);close();});//接受 关闭窗口
+            [=](QString user_name){emit acceptRequest(user_name);});//接受
     connect(ask_dialog,&askDialog::refuse,
             [=](QString user_name){emit refuseRequest(user_name);});//拒绝
-
     ask_dialog->show();
 }

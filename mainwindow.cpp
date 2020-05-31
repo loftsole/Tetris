@@ -12,6 +12,7 @@ MainWindow::MainWindow(QWidget *parent)
     init();
     //this->grabKeyboard();
     game=new Tetris();
+    game->init();
     client=new tcpClient(this);
     connect(client,&tcpClient::newOpponentMessage,
             this,&MainWindow::receiveOpMsg);//接收对方消息
@@ -25,6 +26,12 @@ MainWindow::MainWindow(QWidget *parent)
             client,&tcpClient::send);//给对方发送消息
     connect(game,&Tetris::changeTimer,
             this,&MainWindow::changeTimer);//加速
+    connect(game,&Tetris::opUseItem,
+            this,&MainWindow::opUseItem);//打印对方使用道具信息
+    connect(game,&Tetris::useItemSuccess,
+            this,&MainWindow::useItem);//打印道具信息
+    connect(game,&Tetris::relieveItem,
+            this,&MainWindow::relieveItem);//道具效果消失
     has_user_name=false;
 
     //添加工具栏
@@ -42,6 +49,13 @@ MainWindow::MainWindow(QWidget *parent)
     QToolBar *join_toolbar=addToolBar(tr("&join"));
     join_toolbar->addAction(join_action);
 
+    QAction *info_action=new QAction(tr("&介绍"),this);
+    info_action->setStatusTip(tr("查看游戏规则"));
+    connect(info_action,&QAction::triggered,
+            this,&MainWindow::showInformation);
+    QToolBar *info_toolbar=addToolBar(tr("&info"));
+    info_toolbar->addAction(info_action);
+
     //添加聊天区
     browser=new QTextBrowser(this);
     browser->move(BROWSERX,BROWSERY);
@@ -58,6 +72,47 @@ MainWindow::MainWindow(QWidget *parent)
     edit->setFont(font);
     browser->setFont(font);
 
+    //道具栏
+    item_label[0]=new QLabel(this);
+    item_label[0]->resize(BLOCK_SIZE,BLOCK_SIZE);
+    item_label[0]->move(ITEM_LABELX,ITEM_LABELY);
+    item_label[1]=new QLabel(this);
+    item_label[1]->resize(BLOCK_SIZE,BLOCK_SIZE);
+    item_label[1]->move(ITEM_LABELX+40,ITEM_LABELY);
+    item_label[2]=new QLabel(this);
+    item_label[2]->resize(BLOCK_SIZE,BLOCK_SIZE);
+    item_label[2]->move(ITEM_LABELX+80,ITEM_LABELY);
+    for (int i=0;i<3;i++)
+        item_label[i]->setFont(font);
+
+
+    //join window
+    join_dialog=new joinDialog(this);
+    join_dialog->resize(200,300);
+    connect(client,&tcpClient::userListFinish,
+            join_dialog,&joinDialog::refresh);//客户端收到消息后在join窗口打印
+    connect(join_dialog->refresh_button,&QPushButton::clicked,
+            client,&tcpClient::refreshUserList);//按刷新按钮后刷新
+    connect(join_dialog,&joinDialog::connectRequest,
+            client,&tcpClient::sendConnectRequest);//发出连接请求
+    connect(client,&tcpClient::newConnectRequest,
+            join_dialog,&joinDialog::ask_for_request);//收到时询问
+    connect(join_dialog,&joinDialog::acceptRequest,
+            client,&tcpClient::acceptConnect);//接受
+    connect(join_dialog,&joinDialog::refuseRequest,
+            client,&tcpClient::refuseConnect);//拒绝
+
+    //name window
+    dialog=new nameDialog(this);
+
+    connect(client,&tcpClient::nameAccept,
+            this,&MainWindow::nameAccepted);
+    connect(client,SIGNAL(nameUsed()),
+            dialog,SLOT(nameUsed()));
+    connect(dialog,&nameDialog::sendName,
+            client,&tcpClient::inputUserName);
+
+    update();
     readUserName();
 
     //gameStart();
@@ -78,6 +133,21 @@ void MainWindow::paintEvent(QPaintEvent *)
     painter.drawRect(RIGHT_FRAMEX,RIGHT_FRAMEY,MAX_COL*BLOCK_SIZE,MAX_ROW*BLOCK_SIZE);//右边框
     painter.drawRect(LEFT_NEXTX,LEFT_NEXTY,4*BLOCK_SIZE,4*BLOCK_SIZE);
     painter.drawRect(RIGHT_NEXTX,RIGHT_NEXTY,4*BLOCK_SIZE,4*BLOCK_SIZE);//下一个方块边框
+    painter.drawRect(ITEM_LABELX,ITEM_LABELY,BLOCK_SIZE,BLOCK_SIZE);//道具栏
+    painter.drawRect(ITEM_LABELX+40,ITEM_LABELY,BLOCK_SIZE,BLOCK_SIZE);
+    painter.drawRect(ITEM_LABELX+80,ITEM_LABELY,BLOCK_SIZE,BLOCK_SIZE);
+
+    for (int i=0;i<3;i++)
+    {
+        if (game->item[i]==1)
+            item_label[i]->setText("巨");
+        else if (game->item[i]==2)
+            item_label[i]->setText("反");
+        else if (game->item[i]==3)
+            item_label[i]->setText("墨");
+        else
+            item_label[i]->setText("");
+    }
 
     for (int i=0;i<MAX_ROW;i++)
         for (int j=0;j<MAX_COL;j++)
@@ -111,6 +181,11 @@ void MainWindow::paintEvent(QPaintEvent *)
                 painter.drawRect(j*BLOCK_SIZE+RIGHT_NEXTX,i*BLOCK_SIZE+RIGHT_NEXTY,BLOCK_SIZE,BLOCK_SIZE);
             }
         }
+    if (game->is_ink)
+    {
+        painter.setBrush(QBrush(Qt::black,Qt::SolidPattern));
+        painter.drawRect(LEFT_NEXTX,LEFT_NEXTY,4*BLOCK_SIZE,4*BLOCK_SIZE);
+    }
 }
 void MainWindow::setColour(QPainter &painter,int colour)
 {
@@ -141,13 +216,39 @@ void MainWindow::timerEvent(QTimerEvent *event)
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     if (event->key()==Qt::Key_W)
-        game->rotate();
+    {
+        if (game->is_reverse)
+            game->moveDown();
+        else
+            game->rotate();
+    }
     if (event->key()==Qt::Key_A)
-        game->moveLeft();
+    {
+        if (game->is_reverse)
+            game->moveRight();
+        else
+            game->moveLeft();
+    }
     if (event->key()==Qt::Key_S)
-        game->moveDown();
+    {
+        if (game->is_reverse)
+            game->rotate();
+        else
+            game->moveDown();
+    }
     if (event->key()==Qt::Key_D)
-        game->moveRight();
+    {
+        if (game->is_reverse)
+            game->moveLeft();
+        else
+            game->moveRight();
+    }
+    if (event->key()==Qt::Key_1)
+        game->useItem(0);
+    if (event->key()==Qt::Key_2)
+        game->useItem(1);
+    if (event->key()==Qt::Key_3)
+        game->useItem(2);
 }
 
 void MainWindow::receiveOpMsg(QString op_msg)
@@ -165,6 +266,7 @@ void MainWindow::receiveOpMsg(QString op_msg)
             browser->append("游戏结束,你赢了!");
             is_game_start=false;
             client->send("end");
+            client->gameOver();
             //killTimer(game_timer);
         }
     }
@@ -194,14 +296,6 @@ void MainWindow::showLabel()
 }
 void MainWindow::readUserName()//创建输入用户名窗口
 {
-    dialog=new nameDialog(this);
-
-    connect(client,&tcpClient::nameAccept,
-            this,&MainWindow::nameAccepted);
-    connect(client,SIGNAL(nameUsed()),
-            dialog,SLOT(nameUsed()));
-    connect(dialog,&nameDialog::sendName,
-            client,&tcpClient::inputUserName);
     dialog->show();
 }
 void MainWindow::nameAccepted()//槽 用户名接受完毕
@@ -221,23 +315,6 @@ void MainWindow::createJoinDialog()//创建联机窗口
         return;
     }
 
-    join_dialog=new joinDialog(this);
-    connect(client,&tcpClient::userListFinish,
-            join_dialog,&joinDialog::refresh);//客户端收到消息后在join窗口打印
-    connect(join_dialog->refresh_button,&QPushButton::clicked,
-            client,&tcpClient::refreshUserList);//按刷新按钮后刷新
-    connect(join_dialog,&joinDialog::connectRequest,
-            client,&tcpClient::sendConnectRequest);//发出连接请求
-    connect(client,&tcpClient::newConnectRequest,
-            join_dialog,&joinDialog::ask_for_request);//收到时询问
-    connect(join_dialog,&joinDialog::acceptRequest,
-            client,&tcpClient::acceptConnect);//接受
-    connect(join_dialog,&joinDialog::refuseRequest,
-            client,&tcpClient::refuseConnect);//拒绝
-
-    connect(client,&tcpClient::gameStart,
-            [](){qDebug()<<"game start!";});
-
     client->refreshUserList();//创建时刷新一次
     join_dialog->show();
 }
@@ -246,11 +323,13 @@ void MainWindow::gameStart()
 {
     is_game_start=true;
     showLabel();
+    browser->append("游戏开始!");
+    join_dialog->close();
 
     game_timer=startTimer(down_time);
     game->gameStart();
 }
-void MainWindow::changeTimer(int count)
+void MainWindow::changeTimer(int count)//加速计时器
 {
     if (count==10)
         game_timer=startTimer(down_time-50);
@@ -261,26 +340,61 @@ void MainWindow::changeTimer(int count)
     if (count==100)
         game_timer=startTimer(down_time-300);
 }
-void MainWindow::sendChatMessage()
+void MainWindow::sendChatMessage()//发送聊天消息
 {
     QString msg=edit->text();
     if (msg.isEmpty())
         return;
+    while (msg.indexOf("/")!=-1)
+        msg.remove(msg.indexOf("/"),1);
     browser->append(user_name+": "+msg);
-    if (is_game_start)
-    {
-        msg="m"+msg;
-        client->send(msg);
-    }
+    msg="m"+msg;
+    client->send(msg);
     edit->clear();
     edit->clearFocus();
+}
+void MainWindow::useItem(int num)
+{
+    if (num==1)
+        browser->append("向"+client->getOpUserName()+"丢了一个巨大方块!");
+    if (num==2)
+        browser->append("交换了"+client->getOpUserName()+"的方向!");
+    if (num==3)
+        browser->append("向"+client->getOpUserName()+"泼了一瓶墨水!");
+}
+void MainWindow::opUseItem(int num)
+{
+    if (num==1)
+        browser->append(client->getOpUserName()+"向你丢了一个巨大的方块!");
+    if (num==2)
+        browser->append(client->getOpUserName()+"交换了你的方向!");
+    if (num==3)
+        browser->append(client->getOpUserName()+"向你泼了一瓶墨水!");
+}
+void MainWindow::relieveItem(int num)
+{
+    if (num==2)
+        browser->append("你的方向恢复了正常");
 }
 void MainWindow::gameOver()
 {
     is_game_start=false;
+    client->send("over");
     client->gameOver();
     browser->append("游戏结束,你输了!");
     //killTimer(game_timer);
+}
+void MainWindow::showInformation()
+{
+    QTextBrowser *info_browser=new QTextBrowser;
+    info_browser->resize(420,360);
+    QFont font;
+    font.setPointSize(16);
+    info_browser->setFont(font);
+    info_browser->setText("-----游戏规则介绍-----");
+    info_browser->append("使用WASD进行控制,AD左右移动,W旋转,S加速下落一格(不会直接落到底部).");
+    info_browser->append("消去时有概率获得道具,道具栏显示在上方,共三格,按123数字键使用.道具栏满后无法再获得道具.");
+    info_browser->show();
 }
 void MainWindow::print()
 {

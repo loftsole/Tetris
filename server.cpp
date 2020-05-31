@@ -102,7 +102,7 @@ void * handle_clnt(void * arg)
               data=ori_data;
 
             //打印消息
-            cout<<user_name<<":"<<data<<endl;
+            //cout<<user_name<<":"<<data<<endl;
 
             //分隔符处理完成
             if (data[0]=='n' && get_user_name==false)//客户端发送用户名
@@ -183,7 +183,12 @@ void * handle_clnt(void * arg)
               }
             else if (data[0]=='g' && game_start==false)//发送方确认游戏开始
               {
+                op_user_name=data.substr(1);
                 game_start=true;
+              }
+            else if (data[0]=='m')//聊天消息
+              {
+                send_msg(op_clnt_sock,data);
               }
             else if (game_start==true)//游戏已开始
               {
