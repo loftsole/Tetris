@@ -10,7 +10,6 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle("Tetris Online");
     setFixedSize(1200,800);
     init();
-    //this->grabKeyboard();
     game=new Tetris();
     game->init();
     client=new tcpClient(this);
@@ -34,6 +33,11 @@ MainWindow::MainWindow(QWidget *parent)
             this,&MainWindow::relieveItem);//道具效果消失
     has_user_name=false;
 
+    //背景
+    QPixmap pixmap = QPixmap(":/images/main_background").scaled(this->size());
+    QPalette palette(this->palette());
+    palette.setBrush(QPalette::Background, QBrush(pixmap));
+    this->setPalette(palette);
     //添加工具栏
     QAction *name_action=new QAction(tr("&登录"),this);
     name_action->setStatusTip(tr("输入你的用户名"));
@@ -67,13 +71,27 @@ MainWindow::MainWindow(QWidget *parent)
     connect(edit,SIGNAL(returnPressed()),
             this,SLOT(sendChatMessage()));//回车发送
 
+    QPalette palette2;
+    palette2.setColor(QPalette::Background, QColor(192,253,123,50)); // 最后一项为透明度
+    browser->setPalette(palette2);
+
     QFont font;
-    font.setPointSize(18);
+    font.setPointSize(14);
     edit->setFont(font);
     browser->setFont(font);
+    //用户名显示
+    //font.setPointSize(18);
 
     name_label=new QLabel(this);
     op_name_label=new QLabel(this);
+    name_label->move(LEFT_FRAMEX,LEFT_FRAMEY-50);
+    op_name_label->move(RIGHT_FRAMEX,RIGHT_FRAMEY-50);
+    //name_label->setFont(font);
+    //op_name_label->setFont(font);
+    name_label->setStyleSheet("font-size:24px;color:white");
+    op_name_label->setStyleSheet("font-size:24px;color:white");
+
+
 
     setButton();
 
@@ -89,6 +107,7 @@ MainWindow::MainWindow(QWidget *parent)
     item_label[2]->move(ITEM_LABELX+80,ITEM_LABELY);
     for (int i=0;i<3;i++)
         item_label[i]->setFont(font);
+
 
 
     //join window
@@ -117,6 +136,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(dialog,&nameDialog::sendName,
             client,&tcpClient::inputUserName);
 
+
     update();
     //readUserName();
 
@@ -132,15 +152,27 @@ MainWindow::~MainWindow()
 void MainWindow::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
+    painter.setBrush(QBrush(Qt::darkBlue,Qt::SolidPattern));
+    painter.drawRect(LEFT_FRAMEX-10,LEFT_FRAMEY-10,MAX_COL*BLOCK_SIZE+20,10);
+    painter.drawRect(LEFT_FRAMEX-10,LEFT_FRAMEY+BLOCK_SIZE*MAX_ROW,MAX_COL*BLOCK_SIZE+20,10);
+    painter.drawRect(LEFT_FRAMEX-10,LEFT_FRAMEY-10,10,MAX_ROW*BLOCK_SIZE+20);
+    painter.drawRect(LEFT_FRAMEX+BLOCK_SIZE*MAX_COL,LEFT_FRAMEY-10,10,MAX_ROW*BLOCK_SIZE+20);
+    painter.setBrush(QBrush(Qt::darkRed,Qt::SolidPattern));
+    painter.drawRect(RIGHT_FRAMEX-10,RIGHT_FRAMEY-10,MAX_COL*BLOCK_SIZE+20,10);
+    painter.drawRect(RIGHT_FRAMEX-10,RIGHT_FRAMEY+BLOCK_SIZE*MAX_ROW,MAX_COL*BLOCK_SIZE+20,10);
+    painter.drawRect(RIGHT_FRAMEX-10,RIGHT_FRAMEY-10,10,MAX_ROW*BLOCK_SIZE+20);
+    painter.drawRect(RIGHT_FRAMEX+BLOCK_SIZE*MAX_COL,RIGHT_FRAMEY-10,10,MAX_ROW*BLOCK_SIZE+20);
 
-    painter.setBrush(QBrush(Qt::white,Qt::SolidPattern));
+    painter.setBrush(QColor(255,255,255,225));
     painter.drawRect(LEFT_FRAMEX,LEFT_FRAMEY,MAX_COL*BLOCK_SIZE,MAX_ROW*BLOCK_SIZE);//左边框
     painter.drawRect(RIGHT_FRAMEX,RIGHT_FRAMEY,MAX_COL*BLOCK_SIZE,MAX_ROW*BLOCK_SIZE);//右边框
+    painter.setBrush(QColor(0,170,255,80));
     painter.drawRect(LEFT_NEXTX,LEFT_NEXTY,4*BLOCK_SIZE,4*BLOCK_SIZE);
     painter.drawRect(RIGHT_NEXTX,RIGHT_NEXTY,4*BLOCK_SIZE,4*BLOCK_SIZE);//下一个方块边框
     painter.drawRect(ITEM_LABELX,ITEM_LABELY,BLOCK_SIZE,BLOCK_SIZE);//道具栏
     painter.drawRect(ITEM_LABELX+40,ITEM_LABELY,BLOCK_SIZE,BLOCK_SIZE);
     painter.drawRect(ITEM_LABELX+80,ITEM_LABELY,BLOCK_SIZE,BLOCK_SIZE);
+
 
     for (int i=0;i<3;i++)
     {
@@ -315,18 +347,8 @@ void MainWindow::init()
 }
 void MainWindow::showLabel()
 {
-    QFont font;
-    font.setPointSize(16);
-
     name_label->setText(user_name);
-    name_label->move(LEFT_FRAMEX,LEFT_FRAMEY-50);
-    name_label->setFont(font);
-    name_label->show();
-
     op_name_label->setText(client->getOpUserName());
-    op_name_label->move(RIGHT_FRAMEX,RIGHT_FRAMEY-50);
-    op_name_label->setFont(font);
-    op_name_label->show();
 }
 void MainWindow::readUserName()//创建输入用户名窗口
 {
@@ -432,14 +454,11 @@ void MainWindow::showInformation()
 }
 void MainWindow::setButton()
 {
-    QFont font;
-    font.setPointSize(12);
     for (int i=0;i<5;i++)
     {
         button[i]=new QPushButton(this);
-        button[i]->resize(BLOCK_SIZE,BLOCK_SIZE);
-        button[i]->move(BUTTONX+i*50,BUTTONY);
-        button[i]->setFont(font);
+        button[i]->resize(BLOCK_SIZE+10,BLOCK_SIZE+10);
+        button[i]->move(BUTTONX+i*60,BUTTONY);
     }
     connect(button[0],&QPushButton::clicked,
             this,&MainWindow::chatButton1);
@@ -451,11 +470,11 @@ void MainWindow::setButton()
             this,&MainWindow::chatButton4);
     connect(button[4],&QPushButton::clicked,
             this,&MainWindow::chatButton5);
-    button[0]->setText("?");
-    button[1]->setText("g");
-    button[2]->setText("这");
-    button[3]->setText("不");
-    button[4]->setText("难");
+    button[0]->setStyleSheet("border-image:url(:/images/btn1)");
+    button[1]->setStyleSheet("border-image:url(:/images/btn2)");
+    button[2]->setStyleSheet("border-image:url(:/images/btn3)");
+    button[3]->setStyleSheet("border-image:url(:/images/btn4)");
+    button[4]->setStyleSheet("border-image:url(:/images/btn5)");
 }
 void MainWindow::chatButton1()
 {

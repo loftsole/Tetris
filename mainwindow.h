@@ -15,6 +15,8 @@
 #include <QLineEdit>
 #include <QTextBrowser>
 #include <QFont>
+#include <QPixmap>
+#include <QPalette>
 #include "tetris.h"
 #include "tcpclient.h"
 #include "namedialog.h"
