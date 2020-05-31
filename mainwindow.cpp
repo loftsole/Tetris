@@ -72,6 +72,8 @@ MainWindow::MainWindow(QWidget *parent)
     edit->setFont(font);
     browser->setFont(font);
 
+    setButton();
+
     //道具栏
     item_label[0]=new QLabel(this);
     item_label[0]->resize(BLOCK_SIZE,BLOCK_SIZE);
@@ -395,6 +397,63 @@ void MainWindow::showInformation()
     info_browser->append("使用WASD进行控制,AD左右移动,W旋转,S加速下落一格(不会直接落到底部).");
     info_browser->append("消去时有概率获得道具,道具栏显示在上方,共三格,按123数字键使用.道具栏满后无法再获得道具.");
     info_browser->show();
+}
+void MainWindow::setButton()
+{
+    QFont font;
+    font.setPointSize(16);
+    for (int i=0;i<5;i++)
+    {
+        button[i]=new QPushButton(this);
+        button[i]->resize(BLOCK_SIZE,BLOCK_SIZE);
+        button[i]->move(BUTTONX+i*50,BUTTONY);
+        button[i]->setFont(font);
+    }
+    connect(button[0],&QPushButton::clicked,
+            this,&MainWindow::chatButton1);
+    connect(button[1],&QPushButton::clicked,
+            this,&MainWindow::chatButton2);
+    connect(button[2],&QPushButton::clicked,
+            this,&MainWindow::chatButton3);
+    connect(button[3],&QPushButton::clicked,
+            this,&MainWindow::chatButton4);
+    connect(button[4],&QPushButton::clicked,
+            this,&MainWindow::chatButton5);
+    button[0]->setText("?");
+    button[1]->setText("g");
+    button[2]->setText("这");
+    button[3]->setText("不");
+    button[4]->setText("难");
+}
+void MainWindow::chatButton1()
+{
+    browser->append(user_name+": ?");
+    QString msg="m?";
+    client->send(msg);
+}
+void MainWindow::chatButton2()
+{
+    browser->append(user_name+": gg");
+    QString msg="mgg";
+    client->send(msg);
+}
+void MainWindow::chatButton3()
+{
+    browser->append(user_name+": 就这");
+    QString msg="m就这";
+    client->send(msg);
+}
+void MainWindow::chatButton4()
+{
+    browser->append(user_name+": 你不会以为我在认真玩吧");
+    QString msg="m你不会以为我在认真玩吧";
+    client->send(msg);
+}
+void MainWindow::chatButton5()
+{
+    browser->append(user_name+": 难受,宁愿输的人是我");
+    QString msg="m难受,宁愿输的人是我";
+    client->send(msg);
 }
 void MainWindow::print()
 {

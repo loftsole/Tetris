@@ -49,10 +49,17 @@ private slots:
     void gameStart();
     void gameOver();
 
+    void chatButton1();
+    void chatButton2();
+    void chatButton3();
+    void chatButton4();
+    void chatButton5();
+
 private:
     void init();
     void showLabel();
     void showInformation();
+    void setButton();
     void readUserName();//读取用户名窗口
     void createJoinDialog();//加入对战窗口
     void setColour(QPainter &painter,int colour);
@@ -96,6 +103,8 @@ private:
     const int EDITH=40;
     const int ITEM_LABELX=300;            //道具栏
     const int ITEM_LABELY=60;
+    const int BUTTONX=LEFT_NEXTX;
+    const int BUTTONY=740;
 
     int down_time=500;
 };
