@@ -68,9 +68,12 @@ MainWindow::MainWindow(QWidget *parent)
             this,SLOT(sendChatMessage()));//回车发送
 
     QFont font;
-    font.setPointSize(16);
+    font.setPointSize(18);
     edit->setFont(font);
     browser->setFont(font);
+
+    name_label=new QLabel(this);
+    op_name_label=new QLabel(this);
 
     setButton();
 
@@ -115,7 +118,7 @@ MainWindow::MainWindow(QWidget *parent)
             client,&tcpClient::inputUserName);
 
     update();
-    readUserName();
+    //readUserName();
 
     //gameStart();
 }
@@ -157,14 +160,20 @@ void MainWindow::paintEvent(QPaintEvent *)
             int colour=game->getBox(i,j);
             if (colour>0)
             {
-                setColour(painter,colour);
+                setOutColour(painter,colour);
                 painter.drawRect(j*BLOCK_SIZE+LEFT_FRAMEX,i*BLOCK_SIZE+LEFT_FRAMEY,BLOCK_SIZE,BLOCK_SIZE);
+
+                setColour(painter,colour);
+                painter.drawRect(j*BLOCK_SIZE+LEFT_FRAMEX+4,i*BLOCK_SIZE+LEFT_FRAMEY+4,BLOCK_SIZE-8,BLOCK_SIZE-8);
             }
             colour=game->getOpBox(i,j);
             if (colour>0)
             {
-                setColour(painter,colour);
+                setOutColour(painter,colour);
                 painter.drawRect(j*BLOCK_SIZE+RIGHT_FRAMEX,i*BLOCK_SIZE+RIGHT_FRAMEY,BLOCK_SIZE,BLOCK_SIZE);
+
+                setColour(painter,colour);
+                painter.drawRect(j*BLOCK_SIZE+RIGHT_FRAMEX+4,i*BLOCK_SIZE+RIGHT_FRAMEY+4,BLOCK_SIZE-8,BLOCK_SIZE-8);
             }
         }
     for (int i=0;i<4;i++)
@@ -173,14 +182,20 @@ void MainWindow::paintEvent(QPaintEvent *)
             int colour=game->next_block[i][j];
             if (colour>0)
             {
-                setColour(painter,colour);
+                setOutColour(painter,colour);
                 painter.drawRect(j*BLOCK_SIZE+LEFT_NEXTX,i*BLOCK_SIZE+LEFT_NEXTY,BLOCK_SIZE,BLOCK_SIZE);
+
+                setColour(painter,colour);
+                painter.drawRect(j*BLOCK_SIZE+LEFT_NEXTX+4,i*BLOCK_SIZE+LEFT_NEXTY+4,BLOCK_SIZE-8,BLOCK_SIZE-8);
             }
             colour=game->op_next_block[i][j];
             if (colour>0)
             {
-                setColour(painter,colour);
+                setOutColour(painter,colour);
                 painter.drawRect(j*BLOCK_SIZE+RIGHT_NEXTX,i*BLOCK_SIZE+RIGHT_NEXTY,BLOCK_SIZE,BLOCK_SIZE);
+
+                setColour(painter,colour);
+                painter.drawRect(j*BLOCK_SIZE+RIGHT_NEXTX+4,i*BLOCK_SIZE+RIGHT_NEXTY+4,BLOCK_SIZE-8,BLOCK_SIZE-8);
             }
         }
     if (game->is_ink)
@@ -203,6 +218,25 @@ void MainWindow::setColour(QPainter &painter,int colour)
         painter.setBrush(QBrush(Qt::cyan,Qt::SolidPattern));
     else if (colour==6)
         painter.setBrush(QBrush(Qt::blue,Qt::SolidPattern));
+    else if (colour==7)
+        painter.setBrush(QBrush(Qt::darkBlue,Qt::SolidPattern));
+    else
+        painter.setBrush(QBrush(Qt::black,Qt::SolidPattern));
+}
+void MainWindow::setOutColour(QPainter &painter,int colour)
+{
+    if (colour==1)
+        painter.setBrush(QBrush(Qt::darkRed,Qt::SolidPattern));
+    else if (colour==2)
+        painter.setBrush(QBrush(Qt::darkMagenta,Qt::SolidPattern));
+    else if (colour==3)
+        painter.setBrush(QBrush(Qt::darkYellow,Qt::SolidPattern));
+    else if (colour==4)
+        painter.setBrush(QBrush(Qt::darkGreen,Qt::SolidPattern));
+    else if (colour==5)
+        painter.setBrush(QBrush(Qt::darkCyan,Qt::SolidPattern));
+    else if (colour==6)
+        painter.setBrush(QBrush(Qt::darkBlue,Qt::SolidPattern));
     else if (colour==7)
         painter.setBrush(QBrush(Qt::darkBlue,Qt::SolidPattern));
     else
@@ -284,13 +318,11 @@ void MainWindow::showLabel()
     QFont font;
     font.setPointSize(16);
 
-    name_label=new QLabel(this);
     name_label->setText(user_name);
     name_label->move(LEFT_FRAMEX,LEFT_FRAMEY-50);
     name_label->setFont(font);
     name_label->show();
 
-    op_name_label=new QLabel(this);
     op_name_label->setText(client->getOpUserName());
     op_name_label->move(RIGHT_FRAMEX,RIGHT_FRAMEY-50);
     op_name_label->setFont(font);
@@ -401,7 +433,7 @@ void MainWindow::showInformation()
 void MainWindow::setButton()
 {
     QFont font;
-    font.setPointSize(16);
+    font.setPointSize(12);
     for (int i=0;i<5;i++)
     {
         button[i]=new QPushButton(this);

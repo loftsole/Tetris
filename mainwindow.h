@@ -63,6 +63,7 @@ private:
     void readUserName();//读取用户名窗口
     void createJoinDialog();//加入对战窗口
     void setColour(QPainter &painter,int colour);
+    void setOutColour(QPainter &painter,int colour);
 
     Ui::MainWindow *ui;
     Tetris *game;
