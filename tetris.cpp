@@ -89,23 +89,25 @@ void Tetris::dealOpMsg(QString op_msg)
             ink_count=block_count+10;
         }
     }
-    int num=0;
-    QString c;
-    for (int i=0;i<4;i++)
-        for (int j=0;j<4;j++)
-        {
-            c=op_msg[num];
-            op_next_block[i][j]=c.toInt();
-            num++;
-        }
-    for (int i=0;i<ROW;i++)
-        for (int j=0;j<COL;j++)
-        {
-            c=op_msg[num];
-            op_block[i][j]=c.toInt();
-            num++;
-        }
-
+    else
+    {
+        int num=0;
+        QString c;
+        for (int i=0;i<4;i++)
+            for (int j=0;j<4;j++)
+            {
+                c=op_msg[num];
+                op_next_block[i][j]=c.toInt();
+                num++;
+            }
+        for (int i=0;i<ROW;i++)
+            for (int j=0;j<COL;j++)
+            {
+                c=op_msg[num];
+                op_block[i][j]=c.toInt();
+                num++;
+            }
+    }
     emit print();
 }
 void Tetris::useItem(int item_pos)//使用第pos个道具

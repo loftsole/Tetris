@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QTime>
+#include <QTimer>
 #include <QDebug>
 
 class Tetris:public QObject
@@ -59,6 +60,7 @@ private:
     int reverse_count;
     int item_count;
     bool game_over;
+    int send_timer;
 
     //定义图案代码和边界
     //田字

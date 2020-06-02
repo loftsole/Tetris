@@ -7,5 +7,8 @@
         <file alias="btn4">img/btn4.jpg</file>
         <file alias="btn5">img/btn5.jpg</file>
         <file alias="btn3">img/btn31.jpg</file>
+        <file alias="item2">img/item2.png</file>
+        <file alias="item3">img/item1.jpg</file>
+        <file alias="item1">img/item3.png</file>
     </qresource>
 </RCC>

@@ -17,6 +17,7 @@
 #include <QFont>
 #include <QPixmap>
 #include <QPalette>
+#include <QImage>
 #include "tetris.h"
 #include "tcpclient.h"
 #include "namedialog.h"
@@ -76,6 +77,7 @@ private:
     QTextBrowser *browser;
     QLabel *name_label,*op_name_label;
     QLabel *item_label[3];
+    QPixmap *item_img1,*item_img2,*item_img3;
     QPushButton *button[5];
 
     int paint_timer; //渲染刷新计时器
@@ -104,7 +106,7 @@ private:
     const int EDITY=680;
     const int EDITW=BROWSERW;
     const int EDITH=40;
-    const int ITEM_LABELX=300;            //道具栏
+    const int ITEM_LABELX=260;            //道具栏
     const int ITEM_LABELY=60;
     const int BUTTONX=LEFT_NEXTX;
     const int BUTTONY=740;

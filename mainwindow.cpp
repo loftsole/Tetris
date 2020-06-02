@@ -45,6 +45,7 @@ MainWindow::MainWindow(QWidget *parent)
            this,&MainWindow::readUserName);
     QToolBar *name_toolbar=addToolBar(tr("&name"));
     name_toolbar->addAction(name_action);
+    name_toolbar->setStyleSheet("background-color:rgb(200,200,200);");
 
     QAction *join_action=new QAction(tr("&对战"),this);
     join_action->setStatusTip(tr("寻找你的对手"));
@@ -52,6 +53,7 @@ MainWindow::MainWindow(QWidget *parent)
             this,&MainWindow::createJoinDialog);
     QToolBar *join_toolbar=addToolBar(tr("&join"));
     join_toolbar->addAction(join_action);
+    join_toolbar->setStyleSheet("background-color:rgb(200,200,200);");
 
     QAction *info_action=new QAction(tr("&介绍"),this);
     info_action->setStatusTip(tr("查看游戏规则"));
@@ -59,6 +61,7 @@ MainWindow::MainWindow(QWidget *parent)
             this,&MainWindow::showInformation);
     QToolBar *info_toolbar=addToolBar(tr("&info"));
     info_toolbar->addAction(info_action);
+    info_toolbar->setStyleSheet("background-color:rgb(200,200,200);");
 
     //添加聊天区
     browser=new QTextBrowser(this);
@@ -71,9 +74,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(edit,SIGNAL(returnPressed()),
             this,SLOT(sendChatMessage()));//回车发送
 
-    QPalette palette2;
-    palette2.setColor(QPalette::Background, QColor(192,253,123,50)); // 最后一项为透明度
-    browser->setPalette(palette2);
+    browser->setStyleSheet("background-color:rgb(255,255,255,180);");
+    edit->setStyleSheet("background-color:rgb(255,255,255,180);");
 
     QFont font;
     font.setPointSize(14);
@@ -97,16 +99,24 @@ MainWindow::MainWindow(QWidget *parent)
 
     //道具栏
     item_label[0]=new QLabel(this);
-    item_label[0]->resize(BLOCK_SIZE,BLOCK_SIZE);
+    item_label[0]->resize(BLOCK_SIZE+10,10+BLOCK_SIZE);
     item_label[0]->move(ITEM_LABELX,ITEM_LABELY);
     item_label[1]=new QLabel(this);
-    item_label[1]->resize(BLOCK_SIZE,BLOCK_SIZE);
-    item_label[1]->move(ITEM_LABELX+40,ITEM_LABELY);
+    item_label[1]->resize(BLOCK_SIZE+10,10+BLOCK_SIZE);
+    item_label[1]->move(ITEM_LABELX+50,ITEM_LABELY);
     item_label[2]=new QLabel(this);
-    item_label[2]->resize(BLOCK_SIZE,BLOCK_SIZE);
-    item_label[2]->move(ITEM_LABELX+80,ITEM_LABELY);
+    item_label[2]->resize(BLOCK_SIZE+10,10+BLOCK_SIZE);
+    item_label[2]->move(ITEM_LABELX+100,ITEM_LABELY);
     for (int i=0;i<3;i++)
         item_label[i]->setFont(font);
+    item_img1=new QPixmap(":/images/item1");
+    item_img1->scaled(item_label[0]->size(),Qt::KeepAspectRatio);
+    item_img2=new QPixmap(":/images/item2");
+    item_img2->scaled(item_label[1]->size(),Qt::KeepAspectRatio);
+    item_img3=new QPixmap(":/images/item3");
+    item_img3->scaled(item_label[2]->size(),Qt::KeepAspectRatio);
+    for (int i=0;i<3;i++)
+        item_label[i]->setScaledContents(true);
 
 
 
@@ -138,7 +148,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     update();
-    //readUserName();
+    show();
+    readUserName();
 
     //gameStart();
 }
@@ -163,48 +174,50 @@ void MainWindow::paintEvent(QPaintEvent *)
     painter.drawRect(RIGHT_FRAMEX-10,RIGHT_FRAMEY-10,10,MAX_ROW*BLOCK_SIZE+20);
     painter.drawRect(RIGHT_FRAMEX+BLOCK_SIZE*MAX_COL,RIGHT_FRAMEY-10,10,MAX_ROW*BLOCK_SIZE+20);
 
-    painter.setBrush(QColor(255,255,255,225));
+    painter.setBrush(QColor(255,255,255,180));
     painter.drawRect(LEFT_FRAMEX,LEFT_FRAMEY,MAX_COL*BLOCK_SIZE,MAX_ROW*BLOCK_SIZE);//左边框
     painter.drawRect(RIGHT_FRAMEX,RIGHT_FRAMEY,MAX_COL*BLOCK_SIZE,MAX_ROW*BLOCK_SIZE);//右边框
     painter.setBrush(QColor(0,170,255,80));
     painter.drawRect(LEFT_NEXTX,LEFT_NEXTY,4*BLOCK_SIZE,4*BLOCK_SIZE);
     painter.drawRect(RIGHT_NEXTX,RIGHT_NEXTY,4*BLOCK_SIZE,4*BLOCK_SIZE);//下一个方块边框
-    painter.drawRect(ITEM_LABELX,ITEM_LABELY,BLOCK_SIZE,BLOCK_SIZE);//道具栏
-    painter.drawRect(ITEM_LABELX+40,ITEM_LABELY,BLOCK_SIZE,BLOCK_SIZE);
-    painter.drawRect(ITEM_LABELX+80,ITEM_LABELY,BLOCK_SIZE,BLOCK_SIZE);
+    painter.drawRect(ITEM_LABELX,ITEM_LABELY,BLOCK_SIZE+10,10+BLOCK_SIZE);//道具栏
+    painter.drawRect(ITEM_LABELX+50,ITEM_LABELY,BLOCK_SIZE+10,10+BLOCK_SIZE);
+    painter.drawRect(ITEM_LABELX+100,ITEM_LABELY,BLOCK_SIZE+10,10+BLOCK_SIZE);
 
 
     for (int i=0;i<3;i++)
     {
         if (game->item[i]==1)
-            item_label[i]->setText("巨");
+            item_label[i]->setPixmap(*item_img1);
         else if (game->item[i]==2)
-            item_label[i]->setText("反");
+            item_label[i]->setPixmap(*item_img2);
         else if (game->item[i]==3)
-            item_label[i]->setText("墨");
+            item_label[i]->setPixmap(*item_img3);
+        if (game->item[i]>0)
+            item_label[i]->setVisible(true);
         else
-            item_label[i]->setText("");
+            item_label[i]->setVisible(false);
     }
 
     for (int i=0;i<MAX_ROW;i++)
         for (int j=0;j<MAX_COL;j++)
         {
-            int colour=game->getBox(i,j);
-            if (colour>0)
+            int color=game->getBox(i,j);
+            if (color>0)
             {
-                setOutColour(painter,colour);
+                setOutColour(painter,color);
                 painter.drawRect(j*BLOCK_SIZE+LEFT_FRAMEX,i*BLOCK_SIZE+LEFT_FRAMEY,BLOCK_SIZE,BLOCK_SIZE);
 
-                setColour(painter,colour);
+                setColour(painter,color);
                 painter.drawRect(j*BLOCK_SIZE+LEFT_FRAMEX+4,i*BLOCK_SIZE+LEFT_FRAMEY+4,BLOCK_SIZE-8,BLOCK_SIZE-8);
             }
-            colour=game->getOpBox(i,j);
-            if (colour>0)
+            color=game->getOpBox(i,j);
+            if (color>0)
             {
-                setOutColour(painter,colour);
+                setOutColour(painter,color);
                 painter.drawRect(j*BLOCK_SIZE+RIGHT_FRAMEX,i*BLOCK_SIZE+RIGHT_FRAMEY,BLOCK_SIZE,BLOCK_SIZE);
 
-                setColour(painter,colour);
+                setColour(painter,color);
                 painter.drawRect(j*BLOCK_SIZE+RIGHT_FRAMEX+4,i*BLOCK_SIZE+RIGHT_FRAMEY+4,BLOCK_SIZE-8,BLOCK_SIZE-8);
             }
         }
@@ -379,6 +392,7 @@ void MainWindow::gameStart()
 {
     is_game_start=true;
     showLabel();
+    browser->clear();
     browser->append("游戏开始!");
     join_dialog->close();
 
@@ -484,8 +498,8 @@ void MainWindow::chatButton1()
 }
 void MainWindow::chatButton2()
 {
-    browser->append(user_name+": gg");
-    QString msg="mgg";
+    browser->append(user_name+": 打得不错");
+    QString msg="m打得不错";
     client->send(msg);
 }
 void MainWindow::chatButton3()
